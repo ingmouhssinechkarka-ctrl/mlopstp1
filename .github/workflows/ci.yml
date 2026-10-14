@@ -1,0 +1,50 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Lint (flake8)
+        run: flake8 src tests
+
+      - name: Tests unitaires
+        run: pytest -v --junitxml=test-results.xml
+
+      - name: Entraînement du modèle
+        run: python src/train.py
+
+      - name: Build de l'image Docker
+        run: docker build -t iris-api:${{ github.sha }} .
+
+      - name: Smoke test du conteneur
+        run: |
+          docker run -d --name iris -p 8000:8000 iris-api:${{ github.sha }}
+          for i in $(seq 1 20); do curl -sf localhost:8000/health && break; sleep 2; done
+          curl -sf -X POST localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}'
+          docker logs iris
+
+      - name: Sauvegarder les artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-and-reports
+          path: |
+            model/
+            test-results.xml

@@ -1,0 +1,11 @@
+# API (aussi utilisé dans l'image Docker)
+-r requirements-api.txt
+
+# Entraînement / suivi
+mlflow==3.17.1
+matplotlib==3.11.2
+
+# Tests / qualité
+pytest==9.1.1
+httpx==0.28.1
+flake8==7.4.1

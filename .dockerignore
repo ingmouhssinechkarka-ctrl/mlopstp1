@@ -1,0 +1,12 @@
+.venv/
+mlruns/
+mlflow.db
+data/
+tests/
+k8s/
+monitoring/
+.github/
+__pycache__/
+.pytest_cache/
+*.pyc
+.git/
